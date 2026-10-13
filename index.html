@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Helpline – Ticketing System</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#0a1620;--ink:#eef6f6;--mut:#8fa9ad;--acc:#5eead4;--acc2:#ff8a65;--panel:rgba(14,30,40,.62);--line:rgba(255,255,255,.12);
+--open:#60a5fa;--progress:#fbbf24;--resolved:#34d399;--closed:#94a3b8}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body[data-p=adm]{--bg:#080a18;--ink:#eceeff;--mut:#9399c4;--acc:#9b8cff;--acc2:#f5b942;--panel:rgba(14,16,40,.66)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 'DM Sans',system-ui,sans-serif;min-height:100vh;transition:background .6s}
+canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+#app{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+h1,h2,h3{font-family:'Bricolage Grotesque',system-ui,sans-serif;margin:0;letter-spacing:-.02em}
+.glass{background:var(--panel);border:1px solid var(--line);border-radius:18px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn{background:var(--acc);color:#04121a;font-weight:600;padding:10px 18px;border-radius:12px}
+.btn:hover{filter:brightness(1.1)}
+.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);padding:8px 14px;border-radius:12px}
+.ghost:hover{border-color:var(--acc)}
+input,select,textarea{width:100%;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px}
+textarea{min-height:100px;resize:vertical}
+option{background:#111}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;margin-bottom:18px;flex-wrap:wrap}
+.brand{font-family:'Bricolage Grotesque';font-weight:800;font-size:20px}
+.brand i{display:inline-block;width:12px;height:12px;border-radius:4px;background:var(--acc);margin-right:8px;box-shadow:0 0 14px var(--acc)}
+.home{min-height:80vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:26px}
+.home h1{font-size:clamp(40px,8vw,84px);font-weight:800;line-height:1}
+.home p{color:var(--mut);max-width:46ch;margin:0}
+.doors{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;width:100%;max-width:760px;text-align:left}
+.door{padding:24px;transition:transform .25s,border-color .25s}
+.door:hover{transform:translateY(-4px)}
+.door.e:hover{border-color:#5eead4}.door.a:hover{border-color:#9b8cff}
+.door h2{font-size:26px;margin-bottom:6px}.door small{color:var(--mut)}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:110px}
+.grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.pad{padding:20px}
+.tk{padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;display:grid;gap:4px}
+.tk:hover{background:rgba(255,255,255,.05)}
+.tk:last-child{border:0}
+.tk b{font-weight:600}.tk .m{color:var(--mut);font-size:13px}
+.chip{display:inline-block;font-size:12px;padding:2px 10px;border-radius:99px;border:1px solid currentColor;font-weight:600;white-space:nowrap}
+.s-open{color:var(--open)}.s-progress{color:var(--progress)}.s-resolved{color:var(--resolved)}.s-closed{color:var(--closed)}
+.p-high,.p-urgent{color:#ff6b6b}.p-medium{color:var(--progress)}.p-low{color:var(--mut)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px}
+.stat{padding:16px}.stat b{font-family:'Bricolage Grotesque';font-size:34px;display:block;line-height:1}
+.stat span{color:var(--mut);font-size:13px}
+.bar{height:8px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;display:flex;margin-top:12px}
+.bar>div{height:100%;transition:width .5s}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th{text-align:left;color:var(--mut);font-weight:500;font-size:13px;padding:12px 14px;border-bottom:1px solid var(--line)}
+td{padding:12px 14px;border-bottom:1px solid var(--line)}
+tr.r{cursor:pointer}tr.r:hover td{background:rgba(255,255,255,.05)}
+.empty{padding:36px;text-align:center;color:var(--mut)}
+.modal{position:fixed;inset:0;z-index:5;background:rgba(0,0,0,.55);display:flex;justify-content:flex-end}
+.drawer{width:min(520px,100%);height:100%;overflow:auto;padding:22px;background:var(--bg);border-left:1px solid var(--line);animation:sl .28s ease}
+@keyframes sl{from{transform:translateX(40px);opacity:0}}
+.msg{padding:10px 12px;border-radius:12px;margin:8px 0;background:rgba(255,255,255,.06);max-width:92%}
+.msg.adm{background:color-mix(in srgb,var(--acc) 22%,transparent);margin-left:auto}
+.msg small{color:var(--mut);display:block;font-size:12px}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--acc);color:#04121a;padding:10px 18px;border-radius:12px;font-weight:600;z-index:9}
+.flt{display:flex;gap:8px;padding:14px;flex-wrap:wrap}.flt>*{flex:1;min-width:130px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body data-p="home">
+<canvas id="bg" aria-hidden="true"></canvas>
+<div id="app"></div>
+<script>
+/* ---------- storage ---------- */
+const KEY='helpline.tickets.v1',SK='helpline.session.v1';let mem=null;
+const now=()=>Date.now();
+function seed(){const h=3600e3,n=now();const m=(who,role,text,t)=>({who,role,text,t});
+return[
+{id:'TK-1001',title:'VPN drops every 10 minutes',cat:'Network',pri:'high',desc:'Working from home, the VPN disconnects repeatedly during calls.',status:'progress',by:'Maya Santos',assignee:'Ravi (IT)',created:n-30*h,msgs:[m('Ravi (IT)','adm','Looking into the gateway logs now.',n-20*h)]},
+{id:'TK-1002',title:'Need access to the Finance shared drive',cat:'Access',pri:'medium',desc:'Moving to the FP&A team next week.',status:'open',by:'Jon Reyes',assignee:'',created:n-8*h,msgs:[]},
+{id:'TK-1003',title:'Laptop battery swelling',cat:'Hardware',pri:'urgent',desc:'The trackpad is lifting. Stopped using it.',status:'open',by:'Maya Santos',assignee:'',created:n-3*h,msgs:[]},
+{id:'TK-1004',title:'Update name in payroll portal',cat:'HR',pri:'low',desc:'Legal name change, documents attached to HR.',status:'resolved',by:'Ana Cruz',assignee:'Lea (HR)',created:n-70*h,msgs:[m('Lea (HR)','adm','Updated. Please confirm it shows correctly.',n-60*h)]}]}
+function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}return mem||(mem=seed())}
+function save(){mem=T;try{localStorage.setItem(KEY,JSON.stringify(T))}catch(e){}}
+let T=load();
+let S={v:'home',user:'',sel:null,f:{q:'',s:'',p:''}};
+try{const s=JSON.parse(localStorage.getItem(SK));if(s&&s.v)S={...S,...s}}catch(e){}
+const keep=()=>{try{localStorage.setItem(SK,JSON.stringify({v:S.v,user:S.user}))}catch(e){}};
+addEventListener('storage',e=>{if(e.key===KEY){T=load();draw()}});
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ST={open:'Open',progress:'In progress',resolved:'Resolved',closed:'Closed'};
+const ago=t=>{const m=Math.floor((now()-t)/6e4);return m<1?'just now':m<60?m+'m ago':m<1440?Math.floor(m/60)+'h ago':Math.floor(m/1440)+'d ago'};
+const chip=s=>`<span class="chip s-${s}">${ST[s]}</span>`;
+const pri=p=>`<span class="p-${p}">${p[0].toUpperCase()+p.slice(1)}</span>`;
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+const AGENTS=['Ravi (IT)','Lea (HR)','Kim (Facilities)','Sam (Security)'];
+
+/* ---------- views ---------- */
+function home(){return`<div class="home"><div class="brand"><i></i>Helpline</div>
+<h1>Stuck? Let's sort it.</h1><p>One place to report issues and track every fix. Pick your portal to continue.</p>
+<div class="doors">
+<div class="door e glass"><h2>Employee portal</h2><small>Raise a ticket and follow it to resolution.</small>
+<label for="nm">Your name</label><input id="nm" value="${esc(S.user||'Maya Santos')}" autocomplete="name">
+<p></p><button class="btn" data-a="goE">Enter employee portal</button></div>
+<div class="door a glass"><h2>Admin portal</h2><small>Triage, assign and resolve every request.</small>
+<label for="pin">Admin PIN <span style="opacity:.6">(demo: 1234)</span></label><input id="pin" type="password" inputmode="numeric" placeholder="••••">
+<p></p><button class="btn" data-a="goA">Enter admin portal</button></div></div></div>`}
+
+function topbar(role){return`<div class="top glass"><div class="brand"><i></i>Helpline <span style="color:var(--mut);font-weight:500;font-size:15px">· ${role==='adm'?'Admin':'Employee'}</span></div>
+<div class="row" style="flex:none;align-items:center">${role==='emp'?`<span style="color:var(--mut)">${esc(S.user)}</span>`:''}<button class="ghost" data-a="out">Switch portal</button></div></div>`}
+
+function list(arr){return arr.length?arr.map(t=>`<div class="tk" data-a="open" data-id="${t.id}" tabindex="0"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(t.title)}</b>${chip(t.status)}</div><div class="m">${t.id} · ${esc(t.cat)} · ${ago(t.created)}${t.assignee?' · '+esc(t.assignee):''}</div></div>`).join(''):`<div class="empty">No tickets yet. Describe an issue on the left and we'll pick it up.</div>`}
+
+function emp(){const mine=T.filter(t=>t.by===S.user).sort((a,b)=>b.created-a.created);
+return topbar('emp')+`<div class="grid"><div class="glass pad"><h2>New ticket</h2>
+<label for="t">What's the problem?</label><input id="t" placeholder="Short summary" maxlength="90">
+<div class="row"><div><label for="c">Category</label><select id="c"><option>Hardware</option><option>Software</option><option>Network</option><option>Access</option><option>HR</option><option>Facilities</option></select></div>
+<div><label for="p">Priority</label><select id="p"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div></div>
+<label for="d">Details</label><textarea id="d" placeholder="What happened, and when did it start?"></textarea>
+<p></p><button class="btn" data-a="new" style="width:100%">Submit ticket</button></div>
+<div class="glass"><div style="padding:18px 18px 8px"><h2>My tickets <span style="color:var(--mut);font-size:16px">(${mine.length})</span></h2></div>${list(mine)}</div></div>`}
+
+function adm(){const c=k=>T.filter(t=>t.status===k).length,n=T.length||1;
+const f=S.f;let rows=T.filter(t=>(!f.s||t.status===f.s)&&(!f.p||t.pri===f.p)&&(!f.q||(t.title+t.by+t.id).toLowerCase().includes(f.q.toLowerCase()))).sort((a,b)=>b.created-a.created);
+const order={urgent:0,high:1,medium:2,low:3};
+const stat=(k,l)=>`<div class="stat glass"><b class="s-${k}">${c(k)}</b><span>${l}</span></div>`;
+return topbar('adm')+`<div class="stats">${stat('open','Open')}${stat('progress','In progress')}${stat('resolved','Resolved')}${stat('closed','Closed')}
+<div class="stat glass"><b>${T.filter(t=>t.pri==='urgent'&&t.status!=='closed'&&t.status!=='resolved').length}</b><span>Urgent and unresolved</span></div></div>
+<div class="glass" style="padding:14px 18px;margin-bottom:18px"><span style="color:var(--mut);font-size:13px">Workload by status</span><div class="bar">${['open','progress','resolved','closed'].map(k=>`<div style="width:${c(k)/n*100}%;background:var(--${k})"></div>`).join('')}</div></div>
+<div class="glass"><div class="flt"><input id="fq" placeholder="Search title, person or ID" value="${esc(f.q)}" aria-label="Search">
+<select id="fs" aria-label="Status"><option value="">All statuses</option>${Object.entries(ST).map(([k,v])=>`<option value="${k}" ${f.s===k?'selected':''}>${v}</option>`).join('')}</select>
+<select id="fp" aria-label="Priority"><option value="">All priorities</option>${['urgent','high','medium','low'].map(k=>`<option value="${k}" ${f.p===k?'selected':''}>${k}</option>`).join('')}</select></div>
+<div class="tw"><table><thead><tr><th>ID</th><th>Ticket</th><th>From</th><th>Priority</th><th>Status</th><th>Assigned</th></tr></thead><tbody>
+${rows.sort((a,b)=>order[a.pri]-order[b.pri]).map(t=>`<tr class="r" data-a="open" data-id="${t.id}" tabindex="0"><td>${t.id}</td><td><b>${esc(t.title)}</b><div style="color:var(--mut);font-size:13px">${esc(t.cat)} · ${ago(t.created)}</div></td><td>${esc(t.by)}</td><td>${pri(t.pri)}</td><td>${chip(t.status)}</td><td>${esc(t.assignee)||'<span style="color:var(--mut)">Unassigned</span>'}</td></tr>`).join('')}</tbody></table>
+${rows.length?'':'<div class="empty">No tickets match these filters.</div>'}</div></div>`}
+
+function modal(){const t=T.find(x=>x.id===S.sel);if(!t)return'';const A=S.v==='adm';
+return`<div class="modal" data-a="shade"><div class="drawer" role="dialog" aria-label="Ticket ${t.id}">
+<div style="display:flex;justify-content:space-between;align-items:start;gap:10px"><div><span style="color:var(--mut)">${t.id} · ${esc(t.cat)}</span><h2 style="margin-top:4px">${esc(t.title)}</h2></div><button class="ghost" data-a="x" aria-label="Close">Close</button></div>
+<p style="margin:12px 0 4px">${chip(t.status)} &nbsp; ${pri(t.pri)} priority</p>
+<p style="color:var(--mut);font-size:13px;margin:0 0 12px">Raised by ${esc(t.by)}, ${ago(t.created)}</p>
+<div class="msg"><small>Description</small>${esc(t.desc)||'—'}</div>
+${A?`<div class="row"><div><label for="ms">Status</label><select id="ms">${Object.entries(ST).map(([k,v])=>`<option value="${k}" ${t.status===k?'selected':''}>${v}</option>`).join('')}</select></div>
+<div><label for="mp">Priority</label><select id="mp">${['low','medium','high','urgent'].map(k=>`<option ${t.pri===k?'selected':''}>${k}</option>`).join('')}</select></div>
+<div><label for="ma">Assign to</label><select id="ma"><option value="">Unassigned</option>${AGENTS.map(k=>`<option ${t.assignee===k?'selected':''}>${k}</option>`).join('')}</select></div></div>
+<p></p><button class="btn" data-a="upd" data-id="${t.id}">Save changes</button>`:`<p style="margin:6px 0">Assigned to: <b>${esc(t.assignee)||'Waiting for an agent'}</b></p>`}
+<h3 style="margin:22px 0 6px">Conversation</h3>
+${t.msgs.map(m=>`<div class="msg ${m.role}"><small>${esc(m.who)} · ${ago(m.t)}</small>${esc(m.text)}</div>`).join('')||'<div style="color:var(--mut)">No replies yet.</div>'}
+${t.status==='closed'?(A?'':`<p></p><button class="btn" data-a="reopen" data-id="${t.id}">Reopen ticket</button>`):`<label for="rp">${A?'Reply to employee':'Add a comment'}</label><textarea id="rp" style="min-height:70px"></textarea><p></p><button class="btn" data-a="reply" data-id="${t.id}">Send reply</button>${A?'':` <button class="ghost" data-a="close" data-id="${t.id}">Mark as solved and close</button>`}`}
+</div></div>`}
+
+function draw(){const p=S.v==='emp'||S.v==='adm'?S.v:'home';document.body.dataset.p=p;mode=p;
+const fo=document.activeElement&&document.activeElement.id,pos=document.activeElement?.selectionStart;
+$('#app').innerHTML=(p==='emp'?emp():p==='adm'?adm():home())+(S.sel?modal():'');
+if(fo&&$('#'+fo)&&/^f/.test(fo)){const e=$('#'+fo);e.focus();try{e.setSelectionRange(pos,pos)}catch(x){}}}
+
+/* ---------- actions ---------- */
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a,id=el.dataset.id;
+if(a==='shade'&&e.target!==el)return;
+const t=T.find(x=>x.id===id);
+if(a==='goE'){const n=$('#nm').value.trim();if(!n)return toast('Enter your name first');S.v='emp';S.user=n;keep()}
+else if(a==='goA'){if($('#pin').value!=='1234')return toast('Wrong PIN. Demo PIN is 1234');S.v='adm';keep()}
+else if(a==='out'){S.v='home';S.sel=null;keep()}
+else if(a==='open'){S.sel=id}
+else if(a==='x'||a==='shade'){S.sel=null}
+else if(a==='new'){const ti=$('#t').value.trim();if(!ti)return toast('Add a short summary');
+ const num=Math.max(1000,...T.map(x=>+x.id.slice(3)))+1;T.push({id:'TK-'+num,title:ti,cat:$('#c').value,pri:$('#p').value,desc:$('#d').value.trim(),status:'open',by:S.user,assignee:'',created:now(),msgs:[]});save();toast('Ticket TK-'+num+' submitted')}
+else if(a==='upd'){t.status=$('#ms').value;t.pri=$('#mp').value;t.assignee=$('#ma').value;if(t.assignee&&t.status==='open')t.status='progress';save();toast('Changes saved')}
+else if(a==='reply'){const v=$('#rp').value.trim();if(!v)return toast('Write a reply first');
+ t.msgs.push({who:S.v==='adm'?(t.assignee||'Support'):S.user,role:S.v==='adm'?'adm':'emp',text:v,t:now()});if(S.v==='emp'&&t.status==='resolved')t.status='open';save();toast('Reply sent')}
+else if(a==='close'){t.status='closed';save();toast('Ticket closed')}
+else if(a==='reopen'){t.status='open';save();toast('Ticket reopened')}
+draw()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.sel){S.sel=null;draw()}if(e.key==='Enter'&&e.target.dataset?.a==='open')e.target.click()});
+document.addEventListener('input',e=>{const m={fq:'q',fs:'s',fp:'p'}[e.target.id];if(m){S.f[m]=e.target.value;draw()}});
+
+/* ---------- animated backgrounds ---------- */
+const cv=$('#bg'),cx=cv.getContext('2d');let W,H,mode='home',t=0;
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const orbs=Array.from({length:6},(_,i)=>({x:Math.random(),y:Math.random(),r:.25+Math.random()*.25,s:.15+Math.random()*.25,ph:i*1.7}));
+const dots=Array.from({length:70},()=>({x:Math.random(),y:Math.random(),vx:(Math.random()-.5)*.00035,vy:(Math.random()-.5)*.00035}));
+const sparks=Array.from({length:40},()=>({x:Math.random(),y:Math.random(),v:.0002+Math.random()*.0006,r:1+Math.random()*2}));
+function rs(){const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0)}
+addEventListener('resize',rs);rs();
+const pal={home:['94,234,212','155,140,255','255,138,101'],emp:['94,234,212','56,189,248','255,138,101'],};
+function orbsDraw(p){cx.globalCompositeOperation='lighter';
+ orbs.forEach((o,i)=>{const x=(o.x+Math.sin(t*o.s*.4+o.ph)*.18)*W,y=(o.y+Math.cos(t*o.s*.35+o.ph)*.18)*H,r=o.r*Math.max(W,H),c=p[i%p.length];
+ const g=cx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(${c},.22)`);g.addColorStop(1,`rgba(${c},0)`);cx.fillStyle=g;cx.fillRect(0,0,W,H)});
+ cx.globalCompositeOperation='source-over';
+ sparks.forEach(s=>{s.y-=s.v*(RM?0:1);if(s.y<-.02)s.y=1.02;cx.fillStyle=`rgba(${p[0]},.5)`;cx.beginPath();cx.arc(s.x*W+Math.sin(t+s.r*9)*8,s.y*H,s.r,0,7);cx.fill()})}
+function netDraw(){const c='155,140,255',L=Math.min(150,W/5);
+ cx.strokeStyle='rgba(155,140,255,.06)';cx.lineWidth=1;const gs=48;
+ for(let x=(t*6)%gs;x<W;x+=gs){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke()}
+ for(let y=(t*6)%gs;y<H;y+=gs){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
+ dots.forEach(d=>{if(!RM){d.x+=d.vx*16;d.y+=d.vy*16;if(d.x<0||d.x>1)d.vx*=-1;if(d.y<0||d.y>1)d.vy*=-1}});
+ for(let i=0;i<dots.length;i++){const a=dots[i];for(let j=i+1;j<dots.length;j++){const b=dots[j],dx=(a.x-b.x)*W,dy=(a.y-b.y)*H,d=Math.hypot(dx,dy);
+  if(d<L){cx.strokeStyle=`rgba(${c},${.35*(1-d/L)})`;cx.beginPath();cx.moveTo(a.x*W,a.y*H);cx.lineTo(b.x*W,b.y*H);cx.stroke()}}
+  cx.fillStyle='rgba(245,185,66,.8)';cx.beginPath();cx.arc(a.x*W,a.y*H,i%9===0?3:1.6,0,7);cx.fill()}
+ const sx=((t*.12)%1.3-.15)*W,g=cx.createLinearGradient(sx-180,0,sx,0);g.addColorStop(0,'rgba(155,140,255,0)');g.addColorStop(1,'rgba(155,140,255,.18)');
+ cx.fillStyle=g;cx.fillRect(sx-180,0,180,H);cx.fillStyle='rgba(155,140,255,.5)';cx.fillRect(sx,0,1.5,H)}
+function loop(){if(!RM)t+=.016;cx.clearRect(0,0,W,H);
+ if(mode==='adm')netDraw();else orbsDraw(pal[mode]||pal.home);requestAnimationFrame(loop)}
+loop();draw();
+</script></body></html>
